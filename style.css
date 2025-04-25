@@ -1,0 +1,65 @@
+/* 🌌 Background */
+.stApp {
+    background-image: url("https://www.shutterstock.com/image-vector/cyber-security-information-network-protection-600nw-653839552.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+
+/* 📦 Form Container */
+.stExpander , .stTabs, .stFileUploader, .stAlert , .stForm {
+    background-color: rgba(204, 236, 240, 0.568);
+    padding: 1.5em;
+    border-radius: 10px;
+    color: black;
+}
+
+/* 📤 File Uploader */
+.stFileUploader {
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 5px;
+    padding: 1em;
+}
+
+/* 🔘 Button Styling */
+.stButton>button  {
+    background-color: #419e9e;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 0.5em 1em;
+    transition: background-color 0.3s ease;
+}
+.stButton>button:hover {
+    background-color: #0097a7;
+    color: white;
+}
+
+/* 🧾 Tabs */
+.stTabs [role="tab"] {
+    background-color: rgba(0,0,0,0.3);
+    border-radius: 5px;
+    padding: 0.5em 1em;
+    color: black;
+    font-weight: 600;
+}
+.stTabs [aria-selected="true"] {
+    background-color: #419e9e;
+    color: white;
+}
+
+/* ✅ Success Message */
+.stAlert[data-testid="stAlert-success"] {
+    background-color: rgba(0, 255, 0, 0.15);
+    color: green;
+    border-left: 5px solid green;
+}
+
+/* ⚠️ Warning/Error Message */
+.stAlert[data-testid="stAlert-error"],
+.stAlert[data-testid="stAlert-warning"] {
+    background-color: rgba(218, 39, 39, 0.425);
+    color: darkred;
+    border-left: 5px solid red;
+}

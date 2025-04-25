@@ -1,97 +1,98 @@
 import streamlit as st
+import os, json
 from locker import DigitalLocker
+from hashlib import sha256
 
-# Add background CSS
-def add_background(image_url):
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background-image: url({image_url});
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+USER_FILE = "users.json"
+DATA_FOLDER = "data"
+def load_custom_css(file_path="style.css"):
+    with open(file_path, "r", encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+# Ensure data folder exists
 
-# Setup
-st.set_page_config("🔐 Digital Locker App")
-add_background("https://www.shutterstock.com/image-vector/cyber-security-information-network-protection-600nw-653839552.jpg")
-st.title("📂 Digital Locker")
-st.markdown("Securely upload and manage your documents.")
 
-# Session locker init
+# Load or create user file
+if not os.path.exists(USER_FILE):
+    with open(USER_FILE, "w") as f:
+        json.dump({}, f)
+
+
+# Title and Description
+st.set_page_config(page_title="Digital Locker", page_icon="🔐")
+st.title("🔐 Digital Locker")
+st.markdown("Securely store and manage your files with encryption.")
+load_custom_css()
+
+# Session Init
+if "user" not in st.session_state:
+    st.session_state.user = None
 if "locker" not in st.session_state:
     st.session_state.locker = None
-if "unlocked" not in st.session_state:
-    st.session_state.unlocked = False
-if "password_set" not in st.session_state:
-    st.session_state.password_set = False
 
-# 🔑 Set Password
-if not st.session_state.password_set:
-    with st.form("set_password_form"):
-        st.subheader("🔑 Set Your Locker Password")
-        new_password = st.text_input("Create Password", type="password")
-        confirm_password = st.text_input("Confirm Password", type="password")
-        if st.form_submit_button("Set Password"):
-            if new_password and new_password == confirm_password:
-                st.session_state.locker = DigitalLocker(password=new_password)
-                st.session_state.password_set = True
-                st.success("Password set successfully! You can now unlock your locker.")
-            else:
-                st.error("Passwords do not match or are empty. Please try again.")
+# Load users
+with open(USER_FILE, "r") as f:
+    users = json.load(f)
 
-# 🔑 Unlock Locker
-if st.session_state.password_set and not st.session_state.unlocked:
-    with st.form("unlock_form"):
-        st.subheader("🔐 Enter Locker Password")
-        pwd = st.text_input("Password", type="password")
-        if st.form_submit_button("Unlock"):
-            if st.session_state.locker.check_password(pwd):
-                st.success("Locker Unlocked ✅")
-                st.session_state.unlocked = True
-            else:
-                st.error("Incorrect Password ❌")
+# Set Username and Password
+with st.expander("🆕 Set Username and Password"):
+    new_user = st.text_input("Username")
+    new_pwd = st.text_input("Password", type="password")
+    if st.button("🆕 Set Password"):
+        if new_user in users:
+            st.error("Username already exists!")
+        else:
+            users[new_user] = sha256(new_pwd.encode()).hexdigest()
+            with open(USER_FILE, "w") as f:
+                json.dump(users, f)
+            st.success("User Registered! 🤝")
 
-# 📁 If Unlocked
-if st.session_state.unlocked:
+# Unlock
+
+with st.expander("🔑 Unlock Your Locker"):
+   if not st.session_state.user:
+    user = st.text_input("👤 Username", key="login_user")
+    pwd = st.text_input("🔒 Password", type="password", key="login_pwd")
+    if st.button("Unlock Locker 🔓"):
+        if user in users and users[user] == sha256(pwd.encode()).hexdigest():
+            st.session_state.user = user
+            st.session_state.locker = DigitalLocker(user, pwd)
+            st.success(f"Welcome, {user}! 👋")
+        else:
+            st.error("Invalid credentials.")
+    
+
+# Locker Interface
+if st.session_state.user:
+    st.subheader(f"Welcome, {st.session_state.user} 👋")
+
     tab1, tab2 = st.tabs(["📤 Upload Documents", "📑 Locker Contents"])
 
     with tab1:
-        st.subheader("📤 Upload Document")
-        with st.form("upload_form"):
-            uploaded_file = st.file_uploader("Upload a file", type=["pdf", "png", "jpg", "jpeg", "txt"])
-            if st.form_submit_button("Upload"):
-                if uploaded_file:
-                    with st.spinner("Uploading..."):
-                        st.session_state.locker.add_item(uploaded_file.name, uploaded_file.getvalue())
-                        st.success(f"{uploaded_file.name} added to locker!")
+        file = st.file_uploader("📤 Upload Documents", type=["pdf", "txt", "jpg", "png"])
+        if st.button("Upload"):
+            if file:
+                st.session_state.locker.add_item(file.name, file.read())
+                st.success(f"{file.name} uploaded!")
 
     with tab2:
-        st.subheader("📑 Locker Contents")
-        items = st.session_state.locker.list_items()
-        if items:
-            for item in items:
+        files = st.session_state.locker.list_items()
+        if files:
+            for f in files:
                 col1, col2, col3 = st.columns([3, 1, 1])
                 with col1:
-                    st.markdown(f"**📄 {item.filename}**")
+                    st.markdown(f"📄 {f}")
                 with col2:
-                    decrypted_data = st.session_state.locker.decrypt_data(item.filedata)
-                    st.download_button("⬇️ Download", decrypted_data, file_name=item.filename)
+                    decrypted = st.session_state.locker.get_item(f)
+                    st.download_button("⬇️ Download", decrypted, file_name=f)
                 with col3:
-                    if st.button(f"🗑️ Delete", key=item.filename):
-                        confirm = st.confirm(f"Are you sure you want to delete {item.filename}?")
-                        if confirm:
-                            st.session_state.locker.delete_item(item.filename)
-                            st.experimental_rerun()
+                    if st.button("🗑️ Delete", key=f):
+                        st.session_state.locker.delete_item(f)
+                        st.success(f"{f} deleted.")
+                        st.rerun()
         else:
-            st.info("No documents stored yet.")
+            st.info("No files uploaded yet.")
 
-    # 🔒 Lock Again
-    if st.button("🔒 Lock Again"):
-        st.session_state.unlocked = False
+    if st.button("🚪 Lock Again..!!"):
+        st.session_state.user = None
+        st.session_state.locker = None
         st.rerun()
