@@ -2,43 +2,51 @@
 .stApp {
     background-image: url("https://www.shutterstock.com/image-vector/cyber-security-information-network-protection-600nw-653839552.jpg");
     background-size: cover;
-    background-position: center;
+    background-position: center center;
     background-repeat: no-repeat;
+    background-attachment: fixed; 
+    color: black; 
 }
 
-
 /* 📦 Form Container */
-.stExpander , .stTabs, .stFileUploader, .stAlert , .stForm {
-    background-color: rgba(204, 236, 240, 0.568);
+.stExpander, .stTabs, .stFileUploader, .stAlert, .stForm {
+    background-color: rgba(204, 236, 240, 0.85); 
     padding: 1.5em;
     border-radius: 10px;
     color: black;
 }
 
+/* 🖊 Input fields  */
+input, textarea {
+    background-color: rgba(231, 239, 240, 0.85) !important;
+    color: black !important;
+}
+
 /* 📤 File Uploader */
 .stFileUploader {
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.8);
     border-radius: 5px;
     padding: 1em;
 }
 
 /* 🔘 Button Styling */
-.stButton>button  {
+.stButton > button {
     background-color: #419e9e;
     color: white;
     border: none;
     border-radius: 5px;
     padding: 0.5em 1em;
     transition: background-color 0.3s ease;
+    font-weight: bold;
 }
-.stButton>button:hover {
-    background-color: #0097a7;
+.stButton > button:hover {
+    background-color: #007c91;
     color: white;
 }
 
 /* 🧾 Tabs */
 .stTabs [role="tab"] {
-    background-color: rgba(0,0,0,0.3);
+    background-color: rgba(0, 0, 0, 0.1);
     border-radius: 5px;
     padding: 0.5em 1em;
     color: black;
@@ -59,7 +67,22 @@
 /* ⚠️ Warning/Error Message */
 .stAlert[data-testid="stAlert-error"],
 .stAlert[data-testid="stAlert-warning"] {
-    background-color: rgba(218, 39, 39, 0.425);
+    background-color: rgba(255, 0, 0, 0.15);
     color: darkred;
     border-left: 5px solid red;
+}
+
+/* 📱 Mobile Responsive Adjustments */
+@media only screen and (max-width: 600px) {
+    .stApp {
+        background-attachment: scroll; 
+    }
+    .stExpander, .stTabs, .stFileUploader, .stAlert, .stForm {
+        padding: 1em;
+        border-radius: 8px;
+    }
+    .stButton > button {
+        width: 100%;
+        padding: 1em;
+    }
 }
